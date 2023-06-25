@@ -16,6 +16,7 @@ import SlpTokens from '../slp-tokens'
 import ServerSelectView from '../servers/select-server-view'
 import Sweep from '../sweep'
 import Sign from '../sign'
+import ImageUpload from '../image-upload'
 
 function AppBody (props) {
   // Dependency injection through props
@@ -28,21 +29,23 @@ function AppBody (props) {
 
     switch (menuState) {
       case 0:
-        return (<BchSend appData={appData} />)
+        return (<ImageUpload appData={appData} />)
       case 1:
-        return (<SlpTokens appData={appData} />)
+        return (<BchSend appData={appData} />)
       case 2:
-        return (<BchWallet appData={appData} />)
+        return (<SlpTokens appData={appData} />)
       case 3:
-        return (<Sweep appData={appData} />)
+        return (<BchWallet appData={appData} />)
       case 4:
+        return (<Sweep appData={appData} />)
+      case 5:
         return (<Sign appData={appData} />)
 
         // Special Views
       case 100:
         return (<ServerSelectView appData={appData} />)
       default:
-        return (<BchSend appData={appData} />)
+        return (<ImageUpload appData={appData} />)
     }
   }
 

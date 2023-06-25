@@ -22,17 +22,18 @@ function NavMenu (props) {
       <Navbar collapseOnSelect expand='xxxl' bg='dark' variant='dark' style={{ paddingRight: '20px' }}>
         <Navbar.Brand href='#home' style={{ paddingLeft: '20px' }}>
           <Image src={Logo} thumbnail width='50' />{' '}
-          BCH Web3 Wallet
+          IPFS Image Upload
         </Navbar.Brand>
 
         <Navbar.Toggle aria-controls='responsive-navbar-nav' />
         <Navbar.Collapse id='responsive-navbar-nav' style={{ paddingLeft: '20px' }}>
           <Nav className='mr-auto'>
-            <Nav.Link href='#' onClick={(e) => handleClickEvent(0)}>BCH</Nav.Link>
-            <Nav.Link href='#' onClick={(e) => handleClickEvent(1)}>Tokens</Nav.Link>
-            <Nav.Link href='#' onClick={(e) => handleClickEvent(2)}>Wallet</Nav.Link>
-            <Nav.Link href='#' onClick={(e) => handleClickEvent(3)}>Sweep</Nav.Link>
-            <Nav.Link href='#' onClick={(e) => handleClickEvent(4)}>Sign</Nav.Link>
+            <Nav.Link href='#' onClick={(e) => handleClickEvent(0)}>Image Upload</Nav.Link>
+            <Nav.Link href='#' onClick={(e) => handleClickEvent(1)}>BCH</Nav.Link>
+            <Nav.Link href='#' onClick={(e) => handleClickEvent(2)}>Tokens</Nav.Link>
+            <Nav.Link href='#' onClick={(e) => handleClickEvent(3)}>Wallet</Nav.Link>
+            <Nav.Link href='#' onClick={(e) => handleClickEvent(4)}>Sweep</Nav.Link>
+            <Nav.Link href='#' onClick={(e) => handleClickEvent(5)}>Sign</Nav.Link>
           </Nav>
         </Navbar.Collapse>
       </Navbar>
