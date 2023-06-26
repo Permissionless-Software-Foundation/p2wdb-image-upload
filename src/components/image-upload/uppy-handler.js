@@ -15,12 +15,12 @@ import '@uppy/status-bar/dist/style.css'
 import '@uppy/dashboard/dist/style.css'
 
 // const SERVER = process.env.REACT_APP_API_URL
-const SERVER = 'http://localhost:5010'
+const SERVER = 'http://127.0.0.1:5010'
 
 const uppy = new Uppy({
   meta: { test: 'avatar' },
   allowMultipleUploads: true,
-  debug: false,
+  debug: true,
   restrictions: {
     maxFileSize: null,
     maxNumberOfFiles: 2,
@@ -38,7 +38,10 @@ const uppy = new Uppy({
   }
 })
 
-uppy.use(Tus, { endpoint: `${SERVER}/files` })
+const endpoint = `${SERVER}/files`
+console.log('Tus endpoint: ', endpoint)
+
+uppy.use(Tus, { endpoint })
 
 uppy.on('complete', (result) => { })
 
@@ -50,6 +53,7 @@ if (!window.Object.hasOwn) {
   window.Object.hasOwn = window.hasOwnProperty
   console.warn('window.hasOwn is not supported in safari , its replace by hasOwnProperty ')
 }
+
 const UppyHandler = forwardRef((props, ref) => {
   const { onChange } = props
   const thumbnailAddedRef = useRef()
@@ -59,6 +63,7 @@ const UppyHandler = forwardRef((props, ref) => {
   // this events calls one when the component is mounted
   const handleUppyEvents = useCallback(() => {
     if (uppyFiles.length > 0) return
+
     uppy.once('file-removed', (file, reason) => {
       // clean uppy on file removed
       setUppyFiles([])
@@ -67,6 +72,7 @@ const UppyHandler = forwardRef((props, ref) => {
       filePreviewRef.current = false
       onChange && onChange(null)
     })
+
     uppy.once('file-added', (file) => {
       onChange && onChange(file)
 
@@ -94,24 +100,30 @@ const UppyHandler = forwardRef((props, ref) => {
     })
     // eslint-disable-next-line
   }, [uppyFiles])
+
   // listen uppy event once on component did mount
   // eslint-disable-next-line
   useEffect(handleUppyEvents, [uppyFiles])
   const submit = async () => {
     return new Promise((resolve, reject) => {
       try {
+        console.log('sumbit() uppy: ', uppy)
+
         // Start to upload files via uppy
         uppy
           .upload()
           .then(async (result) => {
-            // console.info("Successful uploads:", result.successful)
+            console.log('upload result: ', result)
+
             try {
               // Upload failed due to no file being selected.
               if (result.successful.length <= 0 && result.failed.length <= 0) {
+                console.log('File is required')
                 resolve(false)
                 // throw new Error('File is required')
               } else if (result.failed.length > 0) {
                 // Upload failed (for some other reason)
+                console.log('Upload failed for some other reason')
 
                 // Error updload some file
                 resolve(false)
@@ -146,7 +158,7 @@ const UppyHandler = forwardRef((props, ref) => {
     if (value.extension) {
       data.push(value.extension)
     } else {
-      data.push('unknow')
+      data.push('unknown')
     }
     return data
   }

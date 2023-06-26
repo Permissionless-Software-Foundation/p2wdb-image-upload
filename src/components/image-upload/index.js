@@ -70,8 +70,10 @@ async function handleUpload (event) {
     // get loaded files
     const hasLoadedFiles = uppyRef.current.hasLoadedFiles()
     const fileData = uppyRef.current.getFileData()
+    console.log('fileData: ', fileData)
 
     const uppyResult = await uppyRef.current.submitFiles()
+    console.log('uppyResult: ', uppyResult)
     if (!uppyResult) {
       throw new Error('Error uploading files')
     }
