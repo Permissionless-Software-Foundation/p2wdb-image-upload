@@ -3,236 +3,135 @@
 */
 
 // Global npm libraries
-import React from 'react'
+import React, { useRef } from 'react'
 import { Container, Row, Col, Form, Button, Modal, Spinner } from 'react-bootstrap'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCircleQuestion } from '@fortawesome/free-solid-svg-icons'
 import Sweep from 'bch-token-sweep'
+import UppyHandler from './uppy-handler.js'
 
-// let _this
+let uppyRef
 
-class ImageUpload extends React.Component {
-  constructor (props) {
-    super()
+function ImageUpload (props) {
+  const { appData } = props
 
-    this.state = {
-      appData: props.appData,
-      wifToSweep: '',
+  uppyRef = useRef()
+  console.log('ImageUpload() uppyRef: ', uppyRef)
 
-      // Modal control
-      showModal: false,
-      statusMsg: '',
-      hideSpinner: false,
-      shouldRefreshOnModalClose: false
+  return (
+    <>
+      <Container>
+        <Row>
+          <Col style={{ textAlign: 'right' }}>
+            <a href='https://youtu.be/QW9xixHaEJE' target='_blank' rel='noreferrer'>
+              <FontAwesomeIcon icon={faCircleQuestion} size='lg' />
+            </a>
+          </Col>
+        </Row>
+
+        <Row>
+          <Col>
+            <p>
+              This view allows you to upload an image to the IPFS network. Only
+              image files under 1 MB are currently supported. Hosting of the
+              image lasts for one year, and costs approximately $0.01 per file.
+            </p>
+          </Col>
+        </Row>
+
+        <Row>
+          <Col>
+            <UppyHandler
+              ref={uppyRef}
+              onChange={(OriginalFile) => {
+                uppyOnChngeHandle(OriginalFile)
+              }}
+              appData={appData}
+            />
+          </Col>
+        </Row>
+
+        <Row>
+          <Col style={{ padding: '25px' }}>
+            <Button variant='info' onClick={(e) => handleUpload(appData)}>Upload</Button>
+          </Col>
+        </Row>
+
+      </Container>
+
+    </>
+  )
+}
+
+async function handleUpload (appData) {
+  console.log('handleUpload() appData: ', appData)
+  console.log('handleUpload() uppyRef: ', uppyRef)
+
+  try {
+    const balance = await appData.wallet.getBalance()
+    console.log('balance: ', balance)
+
+    // get loaded files
+    const hasLoadedFiles = uppyRef.current.hasLoadedFiles()
+    const fileData = uppyRef.current.getFileData()
+    console.log('fileData: ', fileData)
+
+    const uppyResult = await uppyRef.current.submitFiles()
+    console.log('uppyResult: ', uppyResult)
+    if (!uppyResult) {
+      throw new Error('Error uploading files')
     }
+  } catch (err) {
+    console.error('Error in handleUpload(): ', err)
+  }
+}
 
-    // Bind this to event handlers
-    this.handleSweep = this.handleSweep.bind(this)
-    this.updateWalletState = this.updateWalletState.bind(this)
+async function uppyOnChngeHandle (OriginalFile) {
+  // validateFormValues() // validate required file
+  // setPreviousValues(values) // force render
+  // console.log('values: ', values)
+  console.log('OriginalFile: ', OriginalFile)
 
-    // _this = this
+  // if the file does not exist , clear the ref
+  if (!OriginalFile) {
+    // componentWillUnmountFileRef.current = null
+    return
   }
 
-  render () {
-    // Generate the JSX for the modal.
-    const modal = this.getModal()
+  // ignore thumbnail file , just add to the ref the file uploaded by the user
+  if (OriginalFile.meta && !OriginalFile.meta.isThumbnail) {
+    const FileReader = window.FileReader
+    const reader = new FileReader()
 
-    return (
-      <>
-        <Container>
-          <Row>
-            <Col style={{ textAlign: 'right' }}>
-              <a href='https://youtu.be/QW9xixHaEJE' target='_blank' rel='noreferrer'>
-                <FontAwesomeIcon icon={faCircleQuestion} size='lg' />
-              </a>
-            </Col>
-          </Row>
-
-          <Row>
-            <Col>
-              <p>
-                This view allows you to upload an image to the IPFS network. Only
-                image files under 1 MB are currently supported. Hosting of the
-                image lasts for one year, and costs approximately $0.01 per file.
-              </p>
-            </Col>
-          </Row>
-
-          <Row>
-            <Col>
-              <Form>
-                <Form.Group controlId='formWif' style={{ textAlign: 'center' }}>
-                  <Form.Control
-                    type='text'
-                    placeholder='KzJqZxi5XSo36woCy7MFVNRPDpfp8x8FpkhRvrErKBBrDXRVY9Ft'
-                    onChange={e => this.setState({ wifToSweep: e.target.value })}
-                    value={this.state.wifToSweep}
-                  />
-                </Form.Group>
-              </Form>
-            </Col>
-          </Row>
-          <br />
-
-          <Row style={{ textAlign: 'center' }}>
-            <Col>
-              <Button variant='info' onClick={(e) => this.handleSweep()}>Sweep</Button>
-            </Col>
-          </Row>
-        </Container>
-
-        {
-          this.state.showModal
-            ? modal
-            : null
-        }
-      </>
-    )
-  }
-
-  async handleSweep (event) {
-    try {
-      const wif = this.state.wifToSweep
-      console.log(`Sweeping this WIF: ${wif}`)
-
-      // Set the modal to its initial state.
-      this.setState({
-        showModal: true,
-        hideSpinner: false,
-        statusMsg: ''
+    reader.onload = function (e) {
+      // get file blob
+      const Blob = window.Blob
+      const blob = new Blob([new Uint8Array(e.target.result)], {
+        type: OriginalFile.type
       })
 
-      // Input validation
-      const isWIF = this.validateWIF(wif)
-      if (!isWIF) {
-        // throw new Error('Not a WIF key')
-        this.setState({
-          hideSpinner: true,
-          statusMsg: 'Input is not a WIF private key.'
-        })
-        return
+      if (blob) {
+        try {
+          // add file to cache and add url
+          const urlCreator = window.URL || window.webkitURL
+          const imageUrl = urlCreator.createObjectURL(blob)
+
+          // set values to ref
+          // componentWillUnmountFileRef.current = {
+          //   type: OriginalFile.data.type,
+          //   name: OriginalFile.name,
+          //   url: imageUrl,
+          //   size: OriginalFile.size,
+          //   source: OriginalFile.source,
+          //   extension: OriginalFile.extension
+          // }
+        } catch (error) {
+          console.warn(error)
+        }
       }
-
-      try {
-        // const Sweep = this.state.appData.Sweep
-        const walletWif = this.state.appData.bchWallet.walletInfo.privateKey
-        // const bchjs = this.state.appData.bchWallet.bchjs
-        const toAddr = this.state.appData.bchWallet.slpAddress
-
-        // Instance the Sweep library
-        const sweep = new Sweep(wif, walletWif, this.state.appData.bchWallet)
-        await sweep.populateObjectFromNetwork()
-
-        // Constructing the sweep transaction
-        const hex = await sweep.sweepTo(toAddr)
-
-        // return transactionHex
-
-        // Broadcast the transaction to the network.
-        // const txId = await sweeperLib.blockchain.broadcast(transactionHex)
-        const txid = await this.state.appData.bchWallet.ar.sendTx(hex)
-
-        // Generate an HTML status message with links to block explorers.
-        const statusMsg = (
-          <>
-            <p>
-              Sweep succeeded!
-            </p>
-            <p>
-              Transaction ID: {txid}
-            </p>
-            <p>
-              <a href={`https://blockchair.com/bitcoin-cash/transaction/${txid}`} target='_blank' rel='noreferrer'>TX on Blockchair BCH Block Explorer</a>
-            </p>
-            <p>
-              <a href={`https://token.fullstack.cash/transactions/?txid=${txid}`} target='_blank' rel='noreferrer'>TX on token explorer</a>
-            </p>
-          </>
-        )
-
-        this.setState({
-          hideSpinner: true,
-          statusMsg,
-          wifToSweep: ''
-        })
-
-        await this.updateWalletState()
-      } catch (err) {
-        this.setState({
-          hideSpinner: true,
-          statusMsg: (<b>{`Error: ${err.message}`}</b>)
-        })
-      }
-    } catch (err) {
-      console.error('Error in handleSweep(): ', err)
-    }
-  }
-
-  validateWIF (WIF) {
-    if (typeof WIF !== 'string') {
-      return false
     }
 
-    if (WIF.length !== 52) {
-      return false
-    }
-
-    if (WIF[0] !== 'L' && WIF[0] !== 'K') {
-      return false
-    }
-
-    return true
-  }
-
-  // Generate the info modal that is displayed when the button is clicked.
-  getModal () {
-    // const token = this.state.token
-    // console.log(`token: ${JSON.stringify(token, null, 2)}`)
-
-    return (
-      <Modal show={this.state.showModal} size='lg' onHide={(e) => this.handleCloseModal(this)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Sweeping...</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Container>
-            <Row>
-              <Col style={{ textAlign: 'center' }}>
-                Sweeping private key... {
-                  this.state.hideSpinner ? null : <Spinner animation='border' />
-                }
-              </Col>
-            </Row>
-            <br />
-
-            <Row>
-              <Col style={{ textAlign: 'center' }}>
-                {this.state.statusMsg}
-              </Col>
-            </Row>
-          </Container>
-        </Modal.Body>
-        <Modal.Footer />
-      </Modal>
-    )
-  }
-
-  // This handler function is called when the modal is closed.
-  async handleCloseModal () {
-    this.setState({
-      showModal: false
-    })
-  }
-
-  // Update the wallet state. This probably needs to be refined.
-  async updateWalletState () {
-    const wallet = this.state.appData.bchWallet
-
-    const bchBalance = await wallet.getBalance({bchAddress: wallet.walletInfo.cashAddress})
-    await wallet.initialize()
-    const slpTokens = await wallet.listTokens(wallet.walletInfo.cashAddress)
-
-    this.state.appData.updateBchWalletState({ walletObj: { bchBalance, slpTokens }, appData: this.state.appData })
+    reader.readAsArrayBuffer(OriginalFile.data)
   }
 }
 
