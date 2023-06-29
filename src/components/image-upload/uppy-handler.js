@@ -15,7 +15,8 @@ import '@uppy/status-bar/dist/style.css'
 import '@uppy/dashboard/dist/style.css'
 
 // const SERVER = process.env.REACT_APP_API_URL
-const SERVER = 'http://127.0.0.1:5010'
+// const SERVER = 'http://127.0.0.1:5010'
+const SERVER = process.env.REACT_APP_SERVER
 
 // Generate a serial number for this upload session.
 const sn = Math.floor(Math.random() * Math.pow(10, 5))
