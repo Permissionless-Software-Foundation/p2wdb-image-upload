@@ -17,10 +17,13 @@ import '@uppy/dashboard/dist/style.css'
 // const SERVER = process.env.REACT_APP_API_URL
 const SERVER = 'http://127.0.0.1:5010'
 
+// Generate a serial number for this upload session.
+const sn = Math.floor(Math.random() * Math.pow(10, 5))
+
 const uppy = new Uppy({
-  meta: { test: 'avatar' },
+  meta: { test: 'avatar', sn },
   allowMultipleUploads: true,
-  debug: true,
+  debug: false,
   restrictions: {
     maxFileSize: null,
     maxNumberOfFiles: 2,
@@ -55,7 +58,7 @@ if (!window.Object.hasOwn) {
 }
 
 const UppyHandler = forwardRef((props, ref) => {
-  const { onChange } = props
+  const { onChange, appData } = props
   const thumbnailAddedRef = useRef()
   const filePreviewRef = useRef()
   const [uppyFiles, setUppyFiles] = useState([])
@@ -63,6 +66,9 @@ const UppyHandler = forwardRef((props, ref) => {
   // this events calls one when the component is mounted
   const handleUppyEvents = useCallback(() => {
     if (uppyFiles.length > 0) return
+
+    uppy.store.state.meta.wif = appData.wallet.walletInfo.privateKey
+    console.log('uppy: ', uppy)
 
     uppy.once('file-removed', (file, reason) => {
       // clean uppy on file removed

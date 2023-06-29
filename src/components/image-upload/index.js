@@ -46,13 +46,14 @@ function ImageUpload (props) {
               onChange={(OriginalFile) => {
                 uppyOnChngeHandle(OriginalFile)
               }}
+              appData={appData}
             />
           </Col>
         </Row>
 
         <Row>
           <Col style={{ padding: '25px' }}>
-            <Button variant='info' onClick={(e) => handleUpload(e)}>Upload</Button>
+            <Button variant='info' onClick={(e) => handleUpload(appData)}>Upload</Button>
           </Col>
         </Row>
 
@@ -62,11 +63,14 @@ function ImageUpload (props) {
   )
 }
 
-async function handleUpload (event) {
-  console.log('handleUpload() event: ', event)
+async function handleUpload (appData) {
+  console.log('handleUpload() appData: ', appData)
   console.log('handleUpload() uppyRef: ', uppyRef)
 
   try {
+    const balance = await appData.wallet.getBalance()
+    console.log('balance: ', balance)
+
     // get loaded files
     const hasLoadedFiles = uppyRef.current.hasLoadedFiles()
     const fileData = uppyRef.current.getFileData()
