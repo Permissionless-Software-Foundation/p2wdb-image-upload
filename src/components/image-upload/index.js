@@ -3,20 +3,27 @@
 */
 
 // Global npm libraries
-import React, { useRef } from 'react'
+import React, { useRef, useState } from 'react'
 import { Container, Row, Col, Form, Button, Modal, Spinner } from 'react-bootstrap'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCircleQuestion } from '@fortawesome/free-solid-svg-icons'
 import Sweep from 'bch-token-sweep'
 import UppyHandler from './uppy-handler.js'
+import axios from 'axios'
 
 let uppyRef
+
+const SERVER = process.env.REACT_APP_SERVER
 
 function ImageUpload (props) {
   const { appData } = props
 
   uppyRef = useRef()
   console.log('ImageUpload() uppyRef: ', uppyRef)
+
+  // Generate a serial number for this upload session.
+  const [sn, setSn] = useState(Math.floor(Math.random() * Math.pow(10, 5)))
+  console.log('File upload serial number: ', sn)
 
   return (
     <>
@@ -47,13 +54,14 @@ function ImageUpload (props) {
                 uppyOnChngeHandle(OriginalFile)
               }}
               appData={appData}
+              sn={sn}
             />
           </Col>
         </Row>
 
         <Row>
           <Col style={{ padding: '25px' }}>
-            <Button variant='info' onClick={(e) => handleUpload(appData)}>Upload</Button>
+            <Button variant='info' onClick={(e) => handleUpload({ appData, sn })}>Upload</Button>
           </Col>
         </Row>
 
@@ -63,9 +71,10 @@ function ImageUpload (props) {
   )
 }
 
-async function handleUpload (appData) {
+async function handleUpload ({ appData, sn }) {
   console.log('handleUpload() appData: ', appData)
   console.log('handleUpload() uppyRef: ', uppyRef)
+  console.log('handleUpload() sn: ', sn)
 
   try {
     const balance = await appData.wallet.getBalance()
@@ -81,8 +90,24 @@ async function handleUpload (appData) {
     if (!uppyResult) {
       throw new Error('Error uploading files')
     }
+
+    // Check on the status of the file.
+    setInterval(() => checkFile(sn), 5000)
   } catch (err) {
     console.error('Error in handleUpload(): ', err)
+  }
+}
+
+// Called by a timer interval. This checks the status of the file upload.
+async function checkFile (sn) {
+  try {
+    const url = `${SERVER}/files/status/${sn}`
+
+    const result = await axios.get(url)
+    console.log('checkFile() result.data: ', result.data)
+  } catch (err) {
+    console.log('Error in checkFile()')
+    throw err
   }
 }
 

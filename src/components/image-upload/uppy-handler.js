@@ -19,35 +19,8 @@ import '@uppy/dashboard/dist/style.css'
 const SERVER = process.env.REACT_APP_SERVER
 
 // Generate a serial number for this upload session.
-const sn = Math.floor(Math.random() * Math.pow(10, 5))
-
-const uppy = new Uppy({
-  meta: { test: 'avatar', sn },
-  allowMultipleUploads: true,
-  debug: false,
-  restrictions: {
-    maxFileSize: null,
-    maxNumberOfFiles: 2,
-    minNumberOfFiles: 1,
-    allowedFileTypes: ['image/*'] // type of files allowed to load
-  },
-  onBeforeUpload: (files) => {
-    const updatedFiles = Object.assign({}, files)
-    Object.keys(updatedFiles).forEach((fileId) => {
-      const indexName = fileId.lastIndexOf('/')
-      const fileName = fileId.substring(indexName, fileId.length)
-      uppy.setFileMeta(fileId, { fileNameToEncrypt: fileName, resize: 1500 })
-    })
-    return updatedFiles
-  }
-})
-
-const endpoint = `${SERVER}/files`
-console.log('Tus endpoint: ', endpoint)
-
-uppy.use(Tus, { endpoint })
-
-uppy.on('complete', (result) => { })
+// const sn = Math.floor(Math.random() * Math.pow(10, 5))
+// let snGlobal = 0
 
 // Uppy's Dashboard requires the <window.Object.hasOwn> property
 // which some browsers do not support
@@ -59,17 +32,47 @@ if (!window.Object.hasOwn) {
 }
 
 const UppyHandler = forwardRef((props, ref) => {
-  const { onChange, appData } = props
+  const { onChange, appData, sn } = props
   const thumbnailAddedRef = useRef()
   const filePreviewRef = useRef()
   const [uppyFiles, setUppyFiles] = useState([])
+
+  const wif = appData.wallet.walletInfo.privateKey
+
+  const uppy = new Uppy({
+    meta: { test: 'avatar', sn, wif },
+    allowMultipleUploads: true,
+    debug: false,
+    restrictions: {
+      maxFileSize: null,
+      maxNumberOfFiles: 2,
+      minNumberOfFiles: 1,
+      allowedFileTypes: ['image/*'] // type of files allowed to load
+    },
+    onBeforeUpload: (files) => {
+      const updatedFiles = Object.assign({}, files)
+      Object.keys(updatedFiles).forEach((fileId) => {
+        const indexName = fileId.lastIndexOf('/')
+        const fileName = fileId.substring(indexName, fileId.length)
+        uppy.setFileMeta(fileId, { fileNameToEncrypt: fileName, resize: 1500 })
+      })
+      return updatedFiles
+    }
+  })
+
+  const endpoint = `${SERVER}/files`
+  console.log('Tus endpoint: ', endpoint)
+
+  uppy.use(Tus, { endpoint })
+
+  uppy.on('complete', (result) => { })
 
   // this events calls one when the component is mounted
   const handleUppyEvents = useCallback(() => {
     if (uppyFiles.length > 0) return
 
-    uppy.store.state.meta.wif = appData.wallet.walletInfo.privateKey
-    console.log('uppy: ', uppy)
+    // uppy.store.state.meta.wif = appData.wallet.walletInfo.privateKey
+    // console.log('uppy: ', uppy)
 
     uppy.once('file-removed', (file, reason) => {
       // clean uppy on file removed
