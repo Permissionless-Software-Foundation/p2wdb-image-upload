@@ -9,7 +9,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCircleQuestion } from '@fortawesome/free-solid-svg-icons'
 import Sweep from 'bch-token-sweep'
 import UppyHandler from './uppy-handler.js'
-import axios from 'axios'
+import UploadStatus from './upload-status'
 
 let uppyRef
 
@@ -65,6 +65,12 @@ function ImageUpload (props) {
           </Col>
         </Row>
 
+        <Row>
+          <Col>
+            <UploadStatus appData={appData} sn={sn} />
+          </Col>
+        </Row>
+
       </Container>
 
     </>
@@ -91,25 +97,13 @@ async function handleUpload ({ appData, sn }) {
       throw new Error('Error uploading files')
     }
 
-    // Check on the status of the file.
-    setInterval(() => checkFile(sn), 5000)
+    // appData.imageUpload.setShowStatusStr(true)
   } catch (err) {
     console.error('Error in handleUpload(): ', err)
   }
 }
 
-// Called by a timer interval. This checks the status of the file upload.
-async function checkFile (sn) {
-  try {
-    const url = `${SERVER}/files/status/${sn}`
 
-    const result = await axios.get(url)
-    console.log('checkFile() result.data: ', result.data)
-  } catch (err) {
-    console.log('Error in checkFile()')
-    throw err
-  }
-}
 
 async function uppyOnChngeHandle (OriginalFile) {
   // validateFormValues() // validate required file
