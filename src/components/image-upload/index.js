@@ -25,6 +25,15 @@ function ImageUpload (props) {
   const [sn, setSn] = useState(Math.floor(Math.random() * Math.pow(10, 5)))
   console.log('File upload serial number: ', sn)
 
+  const [uploadHasFinished, setUploadHasFinished] = useState(false)
+  appData.uploadHasFinished = uploadHasFinished
+  appData.setUploadHasFinished = setUploadHasFinished
+
+  const flagUploadAsFinished = () => {
+    console.log('FlagUploadAsFinished() executed')
+    setUploadHasFinished(true)
+  }
+
   return (
     <>
       <Container>
@@ -61,13 +70,13 @@ function ImageUpload (props) {
 
         <Row>
           <Col style={{ padding: '25px' }}>
-            <Button variant='info' onClick={(e) => handleUpload({ appData, sn })}>Upload</Button>
+            <Button variant='info' onClick={(e) => handleUpload({ appData, sn, flagUploadAsFinished })}>Upload</Button>
           </Col>
         </Row>
 
         <Row>
           <Col>
-            <UploadStatus appData={appData} sn={sn} />
+            <UploadStatus appData={appData} sn={sn} uploadHasFinished={uploadHasFinished} />
           </Col>
         </Row>
 
@@ -77,7 +86,7 @@ function ImageUpload (props) {
   )
 }
 
-async function handleUpload ({ appData, sn }) {
+async function handleUpload ({ appData, sn, flagUploadAsFinished }) {
   console.log('handleUpload() appData: ', appData)
   console.log('handleUpload() uppyRef: ', uppyRef)
   console.log('handleUpload() sn: ', sn)
@@ -97,13 +106,15 @@ async function handleUpload ({ appData, sn }) {
       throw new Error('Error uploading files')
     }
 
+    // Signal that the upload has completed and pin monitoried can begin.
+    console.log('handleUpload(): setting upload as finished.')
+    flagUploadAsFinished()
+
     // appData.imageUpload.setShowStatusStr(true)
   } catch (err) {
     console.error('Error in handleUpload(): ', err)
   }
 }
-
-
 
 async function uppyOnChngeHandle (OriginalFile) {
   // validateFormValues() // validate required file

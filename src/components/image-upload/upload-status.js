@@ -9,9 +9,13 @@ import { Spinner } from 'react-bootstrap'
 
 const SERVER = process.env.REACT_APP_SERVER
 
-function UploadStatus(props) {
+let globalUploadHasFinished = false
 
-  const { appData, sn } = props
+function UploadStatus (props) {
+  const { appData, sn, uploadHasFinished } = props
+
+  console.log('UploadStatus() executed. uploadHasFinished: ', uploadHasFinished)
+  globalUploadHasFinished = uploadHasFinished
 
   // Showing status of upload
   const [statusStr, setStatusStr] = useState(
@@ -33,37 +37,41 @@ function UploadStatus(props) {
   // The useState feature ensure that only one timer is created, even when
   // the component is redrawn.
   const [checkFileHandle, setCheckFileHandle] = useState(false)
-  if(!checkFileHandle) {
-    const fileStatusHandle = setInterval(() => checkFile({appData, sn}), 10000)
+  if (!checkFileHandle) {
+    const fileStatusHandle = setInterval(() => checkFile({ appData, sn }), 10000)
     setCheckFileHandle(fileStatusHandle)
   }
 
   return (
     <div style={{ padding: '25px' }}>
       {
-        showStatusStr ? (
-          <>
-            {statusStr}
-          </>
-        ) : null
+        showStatusStr
+          ? (
+            <>
+              {statusStr}
+            </>
+            )
+          : null
       }
     </div>
   )
 }
 
 // Called by a timer interval. This checks the status of the file upload.
-async function checkFile ({appData, sn}) {
+async function checkFile ({ appData, sn }) {
   try {
     const url = `${SERVER}/files/status/${sn}`
+
+    console.log('checkFile() globalUploadHasFinished: ', globalUploadHasFinished)
+    if (!globalUploadHasFinished) return
 
     const result = await axios.get(url)
     console.log('checkFile() result.data: ', result.data)
 
     const fileStatus = result.data.fileStatus
 
-    if(fileStatus) {
-
-      if(!fileStatus.uploadComplete) {
+    if (fileStatus) {
+      if (!fileStatus.uploadComplete) {
         // Show the status after file upload has started.
         appData.uploadStatus.setShowStatusStr(true)
       } else {
@@ -76,10 +84,10 @@ async function checkFile ({appData, sn}) {
         appData.uploadStatus.setStatusStr(
           <>
             <p>Upload complete!</p>
-            <p>P2WDB hash: <a href={p2wdbUrl} target="_blank" rel="noreferrer">{fileStatus.p2wdbHash}</a></p>
+            <p>P2WDB hash: <a href={p2wdbUrl} target='_blank' rel='noreferrer'>{fileStatus.p2wdbHash}</a></p>
             <p>IPFS CID: {fileStatus.cid}</p>
             <p>
-              <a href={url} target="_blank" rel="noreferrer">{url}</a>
+              <a href={url} target='_blank' rel='noreferrer'>{url}</a>
             </p>
           </>
         )
