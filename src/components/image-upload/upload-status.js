@@ -14,7 +14,8 @@ let globalUploadHasFinished = false
 function UploadStatus (props) {
   const { appData, sn, uploadHasFinished } = props
 
-  console.log('UploadStatus() executed. uploadHasFinished: ', uploadHasFinished)
+  // Pass the uploadHasFinished value to a global variable so that it can
+  // used in the timer interval function.
   globalUploadHasFinished = uploadHasFinished
 
   // Showing status of upload
@@ -62,7 +63,7 @@ async function checkFile ({ appData, sn }) {
   try {
     const url = `${SERVER}/files/status/${sn}`
 
-    console.log('checkFile() globalUploadHasFinished: ', globalUploadHasFinished)
+    // console.log('checkFile() globalUploadHasFinished: ', globalUploadHasFinished)
     if (!globalUploadHasFinished) return
 
     const result = await axios.get(url)
