@@ -39,6 +39,8 @@ const UppyHandler = forwardRef((props, ref) => {
 
   const wif = appData.wallet.walletInfo.privateKey
 
+  console.log('UppyHandler component redrawn')
+
   const uppy = new Uppy({
     meta: { test: 'avatar', sn, wif },
     allowMultipleUploads: true,

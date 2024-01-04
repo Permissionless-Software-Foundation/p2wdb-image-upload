@@ -9,14 +9,14 @@ import { Spinner } from 'react-bootstrap'
 
 const SERVER = process.env.REACT_APP_SERVER
 
-let globalUploadHasFinished = false
+// let globalUploadHasFinished = false
 
 function UploadStatus (props) {
-  const { appData, sn, uploadHasFinished } = props
+  const { appData, sn } = props
 
   // Pass the uploadHasFinished value to a global variable so that it can
   // used in the timer interval function.
-  globalUploadHasFinished = uploadHasFinished
+  // globalUploadHasFinished = uploadHasFinished
 
   // Showing status of upload
   const [statusStr, setStatusStr] = useState(
@@ -64,28 +64,28 @@ async function checkFile ({ appData, sn }) {
     const url = `${SERVER}/files/status/${sn}`
 
     // console.log('checkFile() globalUploadHasFinished: ', globalUploadHasFinished)
-    if (!globalUploadHasFinished) return
+    // if (!globalUploadHasFinished) return
 
     const result = await axios.get(url)
     console.log('checkFile() result.data: ', result.data)
 
     const fileStatus = result.data.fileStatus
+    console.log('fileStatus: ', fileStatus)
 
     if (fileStatus) {
-      if (!fileStatus.uploadComplete) {
+      if (!fileStatus.dataPinned) {
         // Show the status after file upload has started.
         appData.uploadStatus.setShowStatusStr(true)
       } else {
-        const filename = fileStatus.originalFile.desiredFileName
-        const url = `https://p2wdb-gateway-678.fullstack.cash/ipfs/${fileStatus.cid}/files/${filename}`
+        // const filename = fileStatus.originalFile.desiredFileName
+        const url = `https://pin.fullstack.cash/ipfs/download/${fileStatus.cid}`
 
-        const p2wdbUrl = `https://p2wdb.fullstack.cash/entry/hash/${fileStatus.p2wdbHash}`
+        // const p2wdbUrl = `https://p2wdb.fullstack.cash/entry/hash/${fileStatus.p2wdbHash}`
 
         // Report details after pinning has completed.
         appData.uploadStatus.setStatusStr(
           <>
             <p>Upload complete!</p>
-            <p>P2WDB hash: <a href={p2wdbUrl} target='_blank' rel='noreferrer'>{fileStatus.p2wdbHash}</a></p>
             <p>IPFS CID: {fileStatus.cid}</p>
             <p>
               <a href={url} target='_blank' rel='noreferrer'>{url}</a>

@@ -12,7 +12,7 @@ import UppyHandler from './uppy-handler.js'
 import UploadStatus from './upload-status'
 
 let uppyRef
-
+// let uploadHasFinished = false
 // const SERVER = process.env.REACT_APP_SERVER
 
 function ImageUpload (props) {
@@ -28,14 +28,15 @@ function ImageUpload (props) {
 
   // This flag is used by the UploadStatus component to know when the upload
   // has completed.
-  const [uploadHasFinished, setUploadHasFinished] = useState(false)
+  // const [uploadHasFinished, setUploadHasFinished] = useState(false)
 
   // This function is passed to the handleUpload() function. It gets called
   // after the file has been uploaded, to signal to the UploadStatus component
   // that it can start checking on the status of the uploaded file.
   const flagUploadAsFinished = () => {
     console.log('FlagUploadAsFinished() executed')
-    setUploadHasFinished(true)
+    // setUploadHasFinished(true)
+    // uploadHasFinished = true
   }
 
   return (
@@ -80,7 +81,7 @@ function ImageUpload (props) {
 
         <Row>
           <Col>
-            <UploadStatus appData={appData} sn={sn} uploadHasFinished={uploadHasFinished} />
+            <UploadStatus appData={appData} sn={sn} />
           </Col>
         </Row>
 
