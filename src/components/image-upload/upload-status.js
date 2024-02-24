@@ -73,7 +73,26 @@ async function checkFile ({ appData, sn }) {
     console.log('fileStatus: ', fileStatus)
 
     if (fileStatus) {
-      if (!fileStatus.dataPinned) {
+      if (!fileStatus.dataPinned && fileStatus.cid === null) {
+        // dataPinned === false, there was an error trying to create a pin claim.
+
+        // Show the status after file upload has started.
+        appData.uploadStatus.setShowStatusStr(true)
+
+        appData.uploadStatus.setStatusStr(
+          <>
+            <p>Upload failed</p>
+            <p>
+              Your wallet must have BCH and PSF tokens. You can purchase PSF
+              tokens at <a href='https://psfoundation.cash' target='_blank' rel='noreferrer'>
+                PSFoundation.cash
+                        </a>.
+            </p>
+          </>
+        )
+      } else if (!fileStatus.dataPinned) {
+        // dataPinned = undefined, waiting for status update.
+
         // Show the status after file upload has started.
         appData.uploadStatus.setShowStatusStr(true)
       } else {
