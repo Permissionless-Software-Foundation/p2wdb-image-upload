@@ -39,22 +39,24 @@ const UppyHandler = forwardRef((props, ref) => {
 
   const wif = appData.wallet.walletInfo.privateKey
 
+  console.log('UppyHandler component redrawn')
+
   const uppy = new Uppy({
     meta: { test: 'avatar', sn, wif },
     allowMultipleUploads: true,
-    debug: false,
+    debug: true,
     restrictions: {
       maxFileSize: null,
-      maxNumberOfFiles: 2,
-      minNumberOfFiles: 1,
-      allowedFileTypes: ['image/*'] // type of files allowed to load
+      maxNumberOfFiles: 1,
+      minNumberOfFiles: 1
+      // allowedFileTypes: ['*'] // type of files allowed to load
     },
     onBeforeUpload: (files) => {
       const updatedFiles = Object.assign({}, files)
       Object.keys(updatedFiles).forEach((fileId) => {
         const indexName = fileId.lastIndexOf('/')
         const fileName = fileId.substring(indexName, fileId.length)
-        uppy.setFileMeta(fileId, { fileNameToEncrypt: fileName, resize: 1500 })
+        // uppy.setFileMeta(fileId, { fileNameToEncrypt: fileName, resize: 1500 })
       })
       return updatedFiles
     }
@@ -84,29 +86,30 @@ const UppyHandler = forwardRef((props, ref) => {
     })
 
     uppy.once('file-added', (file) => {
+      console.log('file-added')
       onChange && onChange(file)
 
       const files = uppy.getFiles()
       setUppyFiles(files)
 
       // generate thumbnail and add to uppy if it does not exist
-      if (files.length > 1) { return }
-      const thumbnailGenerator = uppy.getPlugin('Dashboard:ThumbnailGenerator')
-      const thumbnailWidth = 512
-      const thumbnailHeight = 512
-      thumbnailGenerator.createThumbnail(file, thumbnailWidth, thumbnailHeight).then(async (preview) => {
-        const blob = await fetch(preview).then((r) => r.blob())
-        filePreviewRef.current = blob
-        // Add thumbnail file to uppy
-        uppy.addFile({
-          name: `thumbnail-${file.name}`, // file name
-          type: file.data.type, // file type
-          data: blob, // file blob
-          meta: {
-            isThumbnail: true
-          }
-        })
-      }).catch(err => { console.log('Thumbnail error', err) })
+      // if (files.length > 1) { return }
+      // const thumbnailGenerator = uppy.getPlugin('Dashboard:ThumbnailGenerator')
+      // const thumbnailWidth = 512
+      // const thumbnailHeight = 512
+      // thumbnailGenerator.createThumbnail(file, thumbnailWidth, thumbnailHeight).then(async (preview) => {
+      //   const blob = await fetch(preview).then((r) => r.blob())
+      //   filePreviewRef.current = blob
+      //   // Add thumbnail file to uppy
+      //   uppy.addFile({
+      //     name: `thumbnail-${file.name}`, // file name
+      //     type: file.data.type, // file type
+      //     data: blob, // file blob
+      //     meta: {
+      //       isThumbnail: true
+      //     }
+      //   })
+      // }).catch(err => { console.log('Thumbnail error', err) })
     })
     // eslint-disable-next-line
   }, [uppyFiles])
@@ -187,6 +190,7 @@ const UppyHandler = forwardRef((props, ref) => {
       }
     },
     getFileData () {
+      console.log('getFileData() started')
       const files = uppy.getFiles()
       const data = getFileExtension(files)
       return data

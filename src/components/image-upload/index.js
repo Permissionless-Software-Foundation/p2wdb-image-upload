@@ -4,16 +4,16 @@
 
 // Global npm libraries
 import React, { useRef, useState } from 'react'
-import { Container, Row, Col, Form, Button, Modal, Spinner } from 'react-bootstrap'
+import { Container, Row, Col, Button } from 'react-bootstrap'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCircleQuestion } from '@fortawesome/free-solid-svg-icons'
-import Sweep from 'bch-token-sweep'
+// import Sweep from 'bch-token-sweep'
 import UppyHandler from './uppy-handler.js'
 import UploadStatus from './upload-status'
 
 let uppyRef
-
-const SERVER = process.env.REACT_APP_SERVER
+// let uploadHasFinished = false
+// const SERVER = process.env.REACT_APP_SERVER
 
 function ImageUpload (props) {
   const { appData } = props
@@ -22,8 +22,22 @@ function ImageUpload (props) {
   console.log('ImageUpload() uppyRef: ', uppyRef)
 
   // Generate a serial number for this upload session.
-  const [sn, setSn] = useState(Math.floor(Math.random() * Math.pow(10, 5)))
+  const [sn] = useState(Math.floor(Math.random() * Math.pow(10, 5)))
+  // const sn = Math.floor(Math.random() * Math.pow(10, 5))
   console.log('File upload serial number: ', sn)
+
+  // This flag is used by the UploadStatus component to know when the upload
+  // has completed.
+  // const [uploadHasFinished, setUploadHasFinished] = useState(false)
+
+  // This function is passed to the handleUpload() function. It gets called
+  // after the file has been uploaded, to signal to the UploadStatus component
+  // that it can start checking on the status of the uploaded file.
+  const flagUploadAsFinished = () => {
+    console.log('FlagUploadAsFinished() executed')
+    // setUploadHasFinished(true)
+    // uploadHasFinished = true
+  }
 
   return (
     <>
@@ -61,7 +75,7 @@ function ImageUpload (props) {
 
         <Row>
           <Col style={{ padding: '25px' }}>
-            <Button variant='info' onClick={(e) => handleUpload({ appData, sn })}>Upload</Button>
+            <Button variant='info' onClick={(e) => handleUpload({ appData, sn, flagUploadAsFinished })}>Upload</Button>
           </Col>
         </Row>
 
@@ -77,7 +91,7 @@ function ImageUpload (props) {
   )
 }
 
-async function handleUpload ({ appData, sn }) {
+async function handleUpload ({ appData, sn, flagUploadAsFinished }) {
   console.log('handleUpload() appData: ', appData)
   console.log('handleUpload() uppyRef: ', uppyRef)
   console.log('handleUpload() sn: ', sn)
@@ -87,7 +101,7 @@ async function handleUpload ({ appData, sn }) {
     console.log('balance: ', balance)
 
     // get loaded files
-    const hasLoadedFiles = uppyRef.current.hasLoadedFiles()
+    // const hasLoadedFiles = uppyRef.current.hasLoadedFiles()
     const fileData = uppyRef.current.getFileData()
     console.log('fileData: ', fileData)
 
@@ -97,13 +111,15 @@ async function handleUpload ({ appData, sn }) {
       throw new Error('Error uploading files')
     }
 
+    // Signal that the upload has completed and pin monitoried can begin.
+    console.log('handleUpload(): setting upload as finished.')
+    flagUploadAsFinished()
+
     // appData.imageUpload.setShowStatusStr(true)
   } catch (err) {
     console.error('Error in handleUpload(): ', err)
   }
 }
-
-
 
 async function uppyOnChngeHandle (OriginalFile) {
   // validateFormValues() // validate required file
@@ -124,30 +140,30 @@ async function uppyOnChngeHandle (OriginalFile) {
 
     reader.onload = function (e) {
       // get file blob
-      const Blob = window.Blob
-      const blob = new Blob([new Uint8Array(e.target.result)], {
-        type: OriginalFile.type
-      })
+      // const Blob = window.Blob
+      // const blob = new Blob([new Uint8Array(e.target.result)], {
+      //   type: OriginalFile.type
+      // })
 
-      if (blob) {
-        try {
-          // add file to cache and add url
-          const urlCreator = window.URL || window.webkitURL
-          const imageUrl = urlCreator.createObjectURL(blob)
-
-          // set values to ref
-          // componentWillUnmountFileRef.current = {
-          //   type: OriginalFile.data.type,
-          //   name: OriginalFile.name,
-          //   url: imageUrl,
-          //   size: OriginalFile.size,
-          //   source: OriginalFile.source,
-          //   extension: OriginalFile.extension
-          // }
-        } catch (error) {
-          console.warn(error)
-        }
-      }
+      // if (blob) {
+      //   try {
+      //     // add file to cache and add url
+      //     const urlCreator = window.URL || window.webkitURL
+      //     const imageUrl = urlCreator.createObjectURL(blob)
+      //
+      //     // set values to ref
+      //     // componentWillUnmountFileRef.current = {
+      //     //   type: OriginalFile.data.type,
+      //     //   name: OriginalFile.name,
+      //     //   url: imageUrl,
+      //     //   size: OriginalFile.size,
+      //     //   source: OriginalFile.source,
+      //     //   extension: OriginalFile.extension
+      //     // }
+      //   } catch (error) {
+      //     console.warn(error)
+      //   }
+      // }
     }
 
     reader.readAsArrayBuffer(OriginalFile.data)
